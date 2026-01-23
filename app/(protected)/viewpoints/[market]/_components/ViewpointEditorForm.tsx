@@ -52,12 +52,12 @@ export type ViewpointFormValues = z.infer<typeof viewpointSchema>
 
 export default function ViewpointEditorForm({
   market,
-  asOfDate,
   detail,
+  fileExists,
 }: {
   market: MarketCode
-  asOfDate: string
   detail: ViewpointDetailResponse
+  fileExists: boolean
 }) {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -79,12 +79,8 @@ export default function ViewpointEditorForm({
 
   const mutation = useMutation({
     mutationFn: async (values: ViewpointFormValues) => {
-      const content = joinViewpoints(values.points)
-      return updateViewpoint(market, {
-        asOfDate,
-        content,
-        markCompleted: values.markCompleted,
-      })
+      const points = values.points.map(point => point.trim()).filter(Boolean)
+      return updateViewpoint(market, points)
     },
     onSuccess: async () => {
       toast.success("已更新")
@@ -145,12 +141,25 @@ export default function ViewpointEditorForm({
       ? "提交並完成"
       : "提交"
 
+  const isSubmitDisabled = mutation.isPending || !fileExists
+
   return (
     <form
       className="flex flex-col gap-6"
-      onSubmit={form.handleSubmit(values => mutation.mutate(values))}
+      onSubmit={form.handleSubmit(values => {
+        if (!fileExists) {
+          toast.error("檔案尚未就緒，請先執行 generate_report.py")
+          return
+        }
+        mutation.mutate(values)
+      })}
     >
-      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface/80 p-6 shadow-[var(--shadow-soft)]">
+      {!fileExists ? (
+        <div className="rounded-2xl border border-border bg-surface/80 p-4 text-sm text-muted shadow-(--shadow-soft)">
+          檔案尚未就緒，請先執行 generate_report.py 後再提交。
+        </div>
+      ) : null}
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface/80 p-6 shadow-(--shadow-soft)">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted">
@@ -178,7 +187,7 @@ export default function ViewpointEditorForm({
             觀點 1
             <textarea
               rows={5}
-              className="min-h-[120px] rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent"
+              className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent"
               placeholder="輸入今日第一個觀點"
               {...form.register("points.0")}
             />
@@ -187,7 +196,7 @@ export default function ViewpointEditorForm({
             觀點 2
             <textarea
               rows={5}
-              className="min-h-[120px] rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
+              className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
               placeholder="輸入第二個觀點（可選）"
               disabled={secondDisabled}
               {...form.register("points.1")}
@@ -197,7 +206,7 @@ export default function ViewpointEditorForm({
             觀點 3
             <textarea
               rows={5}
-              className="min-h-[120px] rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
+              className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
               placeholder="輸入第三個觀點（可選）"
               disabled={thirdDisabled}
               {...form.register("points.2")}
@@ -219,7 +228,7 @@ export default function ViewpointEditorForm({
 
       <button
         type="submit"
-        disabled={mutation.isPending}
+        disabled={isSubmitDisabled}
         className="inline-flex h-12 items-center justify-center rounded-full bg-accent px-6 text-sm font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {mutation.isPending ? "提交中..." : submitLabel}

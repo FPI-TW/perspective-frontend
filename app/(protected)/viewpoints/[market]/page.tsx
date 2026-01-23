@@ -1,5 +1,11 @@
 import ViewpointPage from "./ViewpointPage"
 
-export default function Page({ params }: { params: { market: string } }) {
-  return <ViewpointPage market={params.market} />
+type Props = {
+  params: Promise<{ market: string }>
+}
+
+export default async function Page({ params }: Props) {
+  const market = (await params).market
+
+  return <ViewpointPage market={market} />
 }

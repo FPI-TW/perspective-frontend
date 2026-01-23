@@ -2,9 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { motion } from "motion/react"
-import { useRouter } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
-import { toast } from "sonner"
+import { useState } from "react"
 import { ApiError } from "@/lib/api/client"
 import { fetchViewpointsStatus } from "@/lib/api/viewpoints"
 import { formatAbsoluteTime } from "@/lib/date"
@@ -20,9 +18,7 @@ const FILTER_LABELS: Record<DashboardFilter, string> = {
 }
 
 export default function DashboardPage() {
-  const router = useRouter()
   const [filter, setFilter] = useState<DashboardFilter>("all")
-  const hasNotifiedRef = useRef(false)
 
   const query = useQuery({
     queryKey: ["viewpoints-status"],
@@ -31,24 +27,6 @@ export default function DashboardPage() {
 
   const apiError = query.error instanceof ApiError ? query.error : null
   const isForbidden = apiError?.status === 403
-
-  useEffect(() => {
-    if (!apiError) {
-      hasNotifiedRef.current = false
-      return
-    }
-
-    if (apiError.status === 401 && !hasNotifiedRef.current) {
-      toast.error("請先登入")
-      hasNotifiedRef.current = true
-      router.push("/login")
-    }
-
-    if (apiError.status === 403 && !hasNotifiedRef.current) {
-      toast.error("無權限")
-      hasNotifiedRef.current = true
-    }
-  }, [apiError, router])
 
   const byMarket = new Map(
     (query.data?.items ?? []).map(item => [item.market, item])
@@ -71,7 +49,7 @@ export default function DashboardPage() {
         ? orderedItems.filter(item => !item.isCompleted)
         : orderedItems
 
-  const asOfLabel = query.data?.asOfDate ?? "—"
+  const asOfLabel = query.data?.asOfDateDisplay ?? query.data?.asOfDate ?? "—"
   const asOfDateTitle = query.data?.asOfDate
     ? formatAbsoluteTime(`${query.data.asOfDate}T00:00:00`)
     : ""
@@ -84,7 +62,7 @@ export default function DashboardPage() {
         transition={{ duration: 0.4 }}
         className="mx-auto flex w-full max-w-6xl flex-col gap-8"
       >
-        <header className="flex flex-col gap-6 rounded-3xl border border-border bg-surface/80 p-6 shadow-[var(--shadow-soft)] backdrop-blur lg:flex-row lg:items-end lg:justify-between">
+        <header className="flex flex-col gap-6 rounded-3xl border border-border bg-surface/80 p-6 shadow-(--shadow-soft) backdrop-blur lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-accent">
               Analyst Viewpoints Dashboard
@@ -109,13 +87,13 @@ export default function DashboardPage() {
         {query.isLoading ? <DashboardSkeleton /> : null}
 
         {!query.isLoading && isForbidden ? (
-          <div className="rounded-2xl border border-border bg-surface/80 p-6 text-sm text-muted shadow-[var(--shadow-soft)]">
+          <div className="rounded-2xl border border-border bg-surface/80 p-6 text-sm text-muted shadow-(--shadow-soft)">
             無權限存取此資料。
           </div>
         ) : null}
 
         {!query.isLoading && query.isError && !isForbidden ? (
-          <div className="rounded-2xl border border-border bg-surface/80 p-6 text-sm text-muted shadow-[var(--shadow-soft)]">
+          <div className="rounded-2xl border border-border bg-surface/80 p-6 text-sm text-muted shadow-(--shadow-soft)">
             <p>資料載入失敗，請稍後再試。</p>
             <button
               type="button"

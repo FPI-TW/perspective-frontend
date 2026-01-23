@@ -16,8 +16,11 @@ import ViewpointSkeleton from "./_components/ViewpointSkeleton"
 export default function ViewpointPage({ market }: { market: string }) {
   const router = useRouter()
   const hasNotifiedRef = useRef(false)
+  console.log("market", market)
 
   const marketCode = isMarketCode(market) ? market : null
+
+  console.log("marketCode", marketCode)
 
   const query = useQuery({
     queryKey: ["viewpoint-detail", marketCode],
@@ -54,7 +57,7 @@ export default function ViewpointPage({ market }: { market: string }) {
   if (!marketCode) {
     return (
       <div className="px-6 py-10 lg:px-12">
-        <div className="mx-auto max-w-5xl rounded-2xl border border-border bg-surface/80 p-6 text-sm text-muted shadow-[var(--shadow-soft)]">
+        <div className="mx-auto max-w-5xl rounded-2xl border border-border bg-surface/80 p-6 text-sm text-muted shadow-(--shadow-soft)">
           無效的市場代碼。
         </div>
       </div>
@@ -72,7 +75,7 @@ export default function ViewpointPage({ market }: { market: string }) {
   const updatedTitle = detail?.lastUpdatedAt
     ? formatAbsoluteTime(detail.lastUpdatedAt)
     : ""
-  const asOfLabel = detail?.asOfDate ?? "—"
+  const asOfLabel = detail?.asOfDateDisplay ?? detail?.asOfDate ?? "—"
 
   return (
     <div className="px-6 py-10 lg:px-12">
@@ -82,7 +85,7 @@ export default function ViewpointPage({ market }: { market: string }) {
         transition={{ duration: 0.4 }}
         className="mx-auto flex w-full max-w-5xl flex-col gap-8"
       >
-        <div className="flex flex-col gap-4 rounded-3xl border border-border bg-surface/80 p-6 shadow-[var(--shadow-soft)] backdrop-blur">
+        <div className="flex flex-col gap-4 rounded-3xl border border-border bg-surface/80 p-6 shadow-(--shadow-soft) backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Link
               href="/dashboard"
@@ -109,22 +112,19 @@ export default function ViewpointPage({ market }: { market: string }) {
             </span>
             <span>資料日期：{asOfLabel}</span>
             <span title={updatedTitle}>最後更新：{updatedLabel}</span>
-            {detail?.lastUpdatedBy ? (
-              <span>更新者：{detail.lastUpdatedBy.name}</span>
-            ) : null}
           </div>
         </div>
 
         {query.isLoading ? <ViewpointSkeleton /> : null}
 
         {!query.isLoading && isForbidden ? (
-          <div className="rounded-2xl border border-border bg-surface/80 p-6 text-sm text-muted shadow-[var(--shadow-soft)]">
+          <div className="rounded-2xl border border-border bg-surface/80 p-6 text-sm text-muted shadow-(--shadow-soft)">
             無權限存取此市場。
           </div>
         ) : null}
 
         {!query.isLoading && query.isError && !isForbidden ? (
-          <div className="rounded-2xl border border-border bg-surface/80 p-6 text-sm text-muted shadow-[var(--shadow-soft)]">
+          <div className="rounded-2xl border border-border bg-surface/80 p-6 text-sm text-muted shadow-(--shadow-soft)">
             <p>資料載入失敗，請稍後再試。</p>
             <button
               type="button"
@@ -139,8 +139,8 @@ export default function ViewpointPage({ market }: { market: string }) {
         {!query.isLoading && detail && !query.isError ? (
           <ViewpointEditorForm
             market={marketCode}
-            asOfDate={detail.asOfDate}
             detail={detail}
+            fileExists={detail.fileExists}
           />
         ) : null}
       </motion.main>
