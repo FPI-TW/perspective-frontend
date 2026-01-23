@@ -74,57 +74,52 @@
 
 ---
 
-## 5. API 串接規格（先暫定建議版；以列點描述，不用 JSON）
+## 5. API 串接規格（Next API proxy；以列點描述，不用 JSON）
 
-### 5.1 取得 Dashboard 狀態（八市場總覽）
-
-- Method：GET
-- Path：`/v1/viewpoints/status`
-- Query：
-  - `date`（可選，格式 `YYYY-MM-DD`；未提供則預設今天）
-- Response（200）欄位：
-  - `asOfDate`: `YYYY-MM-DD`
-  - `items`: Array
-    - `market`: MarketCode
-    - `isCompleted`: boolean
-    - `lastUpdatedAt`: ISO string 或 null
-    - `lastUpdatedBy`: `{ id: string; name: string }` 或 null
-    - `summary`: string（可選）
-
-### 5.2 取得某市場最新觀點
+### 5.1 取得檔案狀態
 
 - Method：GET
-- Path：`/v1/viewpoints/{market}`
-- Path param：
-  - `market`: MarketCode
-- Query：
-  - `date`（可選，格式 `YYYY-MM-DD`；未提供則預設今天）
+- Path：`/api/file-info`
 - Response（200）欄位：
-  - `market`: MarketCode
-  - `asOfDate`: `YYYY-MM-DD`
-  - `isCompleted`: boolean
-  - `content`: string（可為空字串）
-  - `lastUpdatedAt`: ISO string 或 null
-  - `lastUpdatedBy`: `{ id: string; name: string }` 或 null
+  - `date`: `YYYY-MM-DD`
+  - `date_display`: string
+  - `file_path`: string
+  - `file_exists`: boolean
+  - `status`: string
+
+### 5.2 取得市場摘要
+
+- Method：GET
+- Path：`/api/summary`
+- Response（200）欄位：
+  - `us_macro`: string[]
+  - `forex`: string[]
+  - `crypto`: string[]
+  - `us_stocks`: string[]
+  - `hk_stocks`: string[]
+  - `cn_stocks`: string[]
+  - `tw_stocks`: string[]
+  - `tw_futures`: string[]
 
 ### 5.3 更新/提交觀點
 
-- Method：PUT
-- Path：`/v1/viewpoints/{market}`
-- Path param：
-  - `market`: MarketCode
+- Method：POST
+- Path：`/api/summary`
 - Request body 欄位：
-  - `asOfDate`: `YYYY-MM-DD`
-  - `content`: string
-  - `markCompleted`: boolean
+  - `us_macro` / `forex` / `crypto` / `us_stocks` / `hk_stocks` / `cn_stocks` / `tw_stocks` / `tw_futures`
+  - value: string[]（更新對應市場重點）
 - Response（200）欄位（最小集）：
-  - `market`: MarketCode
-  - `asOfDate`: `YYYY-MM-DD`
-  - `isCompleted`: boolean
-  - `lastUpdatedAt`: ISO string
-  - `lastUpdatedBy`: `{ id: string; name: string }`
+  - `status`: string
+  - `message`: string
+  - `file`: string
 
-### 5.4 錯誤格式（統一）
+### 5.4 Proxy 說明
+
+- `/api/file-info`、`/api/summary` 為 Next API proxy
+- 由 server 端帶入 `API_KEY` 呼叫外部 API，避免 key 暴露在 client
+- 外部 base URL 由 `NEXT_PUBLIC_API_URL` 或 `NEXT_PUBLIC_API_BASE_URL` 提供
+
+### 5.5 錯誤格式（統一）
 
 - Response（非 2xx）欄位：
   - `error.code`: string（例：`VALIDATION_ERROR` / `UNAUTHORIZED` / `FORBIDDEN`）
@@ -141,8 +136,8 @@
 
 ### 6.1 Query Keys（建議）
 
-- `["viewpoints-status", asOfDate]`
-- `["viewpoint-detail", market, asOfDate]`
+- `["viewpoints-status"]`
+- `["viewpoint-detail", market]`
 
 ### 6.2 Dashboard
 
@@ -156,10 +151,10 @@
 - 進 `/viewpoints/[market]`：
   - useQuery 取得 detail
 - 提交：
-  - useMutation 呼叫 PUT
+  - useMutation 呼叫 POST `/api/summary`
   - 成功後 invalidate：
-    - `["viewpoint-detail", market, asOfDate]`
-    - `["viewpoints-status", asOfDate]`（確保 dashboard 一致）
+    - `["viewpoint-detail", market]`
+    - `["viewpoints-status"]`（確保 dashboard 一致）
 
 ---
 
@@ -167,8 +162,8 @@
 
 ### 7.1 Dashboard Layout（RWD 必備）
 
-- Desktop：4 欄 x 2 列卡片
-- Tablet：2 欄
+- Desktop：2 欄 x 1 列卡片
+- Tablet：1 欄
 - Mobile：1 欄
 - 建議 class：
   - `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4`
@@ -221,12 +216,12 @@
 
 ### 9.1 環境變數
 
-- `NEXT_PUBLIC_API_BASE_URL`
+- `NEXT_PUBLIC_API_URL` 或 `NEXT_PUBLIC_API_BASE_URL`（外部 API base URL）
+- `API_KEY`（server side only，供 Next API proxy 使用）
 
 ### 9.2 apiFetch 行為（建議）
 
-- 統一加上 baseURL
-- 同網域可用 `credentials: "include"`（依你的登入策略）
+- client 僅打同網域 `/api/*`（Next API proxy）
 - 非 2xx：
   - 解析為 ApiError（或丟出可辨識錯誤）
 - 不在底層 fetch 內強制 redirect（避免不同頁行為不一致）
