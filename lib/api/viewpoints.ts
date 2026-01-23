@@ -37,28 +37,12 @@ export type UpdateViewpointResponse = {
   lastUpdatedBy: { id: string; name: string }
 }
 
-export function fetchViewpointsStatus(asOfDate?: string) {
-  const params = new URLSearchParams()
-  if (asOfDate) {
-    params.set("date", asOfDate)
-  }
-  const query = params.toString()
-  const path = query
-    ? `/v1/viewpoints/status?${query}`
-    : "/v1/viewpoints/status"
-  return apiFetch<ViewpointsStatusResponse>(path)
+export function fetchViewpointsStatus() {
+  return apiFetch<ViewpointsStatusResponse>("/v1/viewpoints/status")
 }
 
-export function fetchViewpointDetail(market: MarketCode, asOfDate?: string) {
-  const params = new URLSearchParams()
-  if (asOfDate) {
-    params.set("date", asOfDate)
-  }
-  const query = params.toString()
-  const path = query
-    ? `/v1/viewpoints/${market}?${query}`
-    : `/v1/viewpoints/${market}`
-  return apiFetch<ViewpointDetailResponse>(path)
+export function fetchViewpointDetail(market: MarketCode) {
+  return apiFetch<ViewpointDetailResponse>(`/v1/viewpoints/${market}`)
 }
 
 export function updateViewpoint(

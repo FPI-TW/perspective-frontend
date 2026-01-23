@@ -89,10 +89,10 @@ export default function ViewpointEditorForm({
     onSuccess: async () => {
       toast.success("已更新")
       await queryClient.invalidateQueries({
-        queryKey: ["viewpoint-detail", market, asOfDate],
+        queryKey: ["viewpoint-detail", market],
       })
       await queryClient.invalidateQueries({
-        queryKey: ["viewpoints-status", asOfDate],
+        queryKey: ["viewpoints-status"],
       })
     },
     onError: error => {

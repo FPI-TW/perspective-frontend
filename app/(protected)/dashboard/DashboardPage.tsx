@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { ApiError } from "@/lib/api/client"
 import { fetchViewpointsStatus } from "@/lib/api/viewpoints"
-import { formatAbsoluteTime, getLocalDateString } from "@/lib/date"
+import { formatAbsoluteTime } from "@/lib/date"
 import { MARKETS } from "@/lib/markets"
 import DashboardSkeleton from "./_components/DashboardSkeleton"
 import FiltersBar, { type DashboardFilter } from "./_components/FiltersBar"
@@ -21,13 +21,12 @@ const FILTER_LABELS: Record<DashboardFilter, string> = {
 
 export default function DashboardPage() {
   const router = useRouter()
-  const [asOfDate, setAsOfDate] = useState(getLocalDateString())
   const [filter, setFilter] = useState<DashboardFilter>("all")
   const hasNotifiedRef = useRef(false)
 
   const query = useQuery({
-    queryKey: ["viewpoints-status", asOfDate],
-    queryFn: () => fetchViewpointsStatus(asOfDate),
+    queryKey: ["viewpoints-status"],
+    queryFn: () => fetchViewpointsStatus(),
   })
 
   const apiError = query.error instanceof ApiError ? query.error : null
@@ -72,8 +71,10 @@ export default function DashboardPage() {
         ? orderedItems.filter(item => !item.isCompleted)
         : orderedItems
 
-  const asOfLabel = query.data?.asOfDate ?? asOfDate
-  const asOfDateTitle = formatAbsoluteTime(`${asOfLabel}T00:00:00`)
+  const asOfLabel = query.data?.asOfDate ?? "—"
+  const asOfDateTitle = query.data?.asOfDate
+    ? formatAbsoluteTime(`${query.data.asOfDate}T00:00:00`)
+    : ""
 
   return (
     <div className="px-6 py-10 lg:px-12">
@@ -96,15 +97,6 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <label className="flex items-center gap-3 rounded-full border border-border bg-surface/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-muted">
-              日期
-              <input
-                type="date"
-                value={asOfDate}
-                onChange={event => setAsOfDate(event.target.value)}
-                className="bg-transparent text-sm font-semibold text-ink outline-none"
-              />
-            </label>
             <FiltersBar value={filter} onChange={setFilter} />
           </div>
         </header>

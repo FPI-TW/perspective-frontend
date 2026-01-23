@@ -4,34 +4,29 @@ import { useQuery } from "@tanstack/react-query"
 import { motion } from "motion/react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { toast } from "sonner"
 import { ApiError } from "@/lib/api/client"
 import { fetchViewpointDetail } from "@/lib/api/viewpoints"
-import {
-  formatAbsoluteTime,
-  formatRelativeTime,
-  getLocalDateString,
-} from "@/lib/date"
+import { formatAbsoluteTime, formatRelativeTime } from "@/lib/date"
 import { isMarketCode, MARKET_LABELS } from "@/lib/markets"
 import ViewpointEditorForm from "./_components/ViewpointEditorForm"
 import ViewpointSkeleton from "./_components/ViewpointSkeleton"
 
 export default function ViewpointPage({ market }: { market: string }) {
   const router = useRouter()
-  const [asOfDate, setAsOfDate] = useState(getLocalDateString())
   const hasNotifiedRef = useRef(false)
 
   const marketCode = isMarketCode(market) ? market : null
 
   const query = useQuery({
-    queryKey: ["viewpoint-detail", marketCode, asOfDate],
+    queryKey: ["viewpoint-detail", marketCode],
     enabled: Boolean(marketCode),
     queryFn: () => {
       if (!marketCode) {
         return Promise.reject(new Error("Invalid market"))
       }
-      return fetchViewpointDetail(marketCode, asOfDate)
+      return fetchViewpointDetail(marketCode)
     },
   })
 
@@ -77,6 +72,7 @@ export default function ViewpointPage({ market }: { market: string }) {
   const updatedTitle = detail?.lastUpdatedAt
     ? formatAbsoluteTime(detail.lastUpdatedAt)
     : ""
+  const asOfLabel = detail?.asOfDate ?? "—"
 
   return (
     <div className="px-6 py-10 lg:px-12">
@@ -94,15 +90,6 @@ export default function ViewpointPage({ market }: { market: string }) {
             >
               ← 返回 Dashboard
             </Link>
-            <label className="flex items-center gap-3 rounded-full border border-border bg-surface/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-muted">
-              日期
-              <input
-                type="date"
-                value={asOfDate}
-                onChange={event => setAsOfDate(event.target.value)}
-                className="bg-transparent text-sm font-semibold text-ink outline-none"
-              />
-            </label>
           </div>
 
           <div className="flex flex-col gap-3">
@@ -120,6 +107,7 @@ export default function ViewpointPage({ market }: { market: string }) {
             >
               {statusLabel}
             </span>
+            <span>資料日期：{asOfLabel}</span>
             <span title={updatedTitle}>最後更新：{updatedLabel}</span>
             {detail?.lastUpdatedBy ? (
               <span>更新者：{detail.lastUpdatedBy.name}</span>
@@ -151,7 +139,7 @@ export default function ViewpointPage({ market }: { market: string }) {
         {!query.isLoading && detail && !query.isError ? (
           <ViewpointEditorForm
             market={marketCode}
-            asOfDate={asOfDate}
+            asOfDate={detail.asOfDate}
             detail={detail}
           />
         ) : null}
