@@ -1,7 +1,7 @@
 # Frontend Spec — Analyst Viewpoints Dashboard
 
 > 目的：提供內部用 Dashboard，呈現八個市場「分析師觀點是否已完成」；並提供各市場輸入頁可手動更新觀點。  
-> 技術：Next.js（App Router）、TypeScript、@tanstack/react-query（useQuery/useMutation）、Tailwind CSS、shadcn/ui、React Hook Form、Zod、Motion
+> 技術：Next.js（App Router）、TypeScript、@tanstack/react-query（useQuery/useMutation）、Tailwind CSS、shadcn/ui、React Hook Form、Zod、react/motion
 > 權限：登入/權限在 Next.js Server Side 簡單處理  
 > 非功能：RWD 必備；不做 i18n
 
