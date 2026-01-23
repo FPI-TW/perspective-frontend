@@ -25,6 +25,8 @@ export default function LoginPage() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
+        cache: "no-store",
         body: JSON.stringify({ account, password }),
       })
 
@@ -38,7 +40,8 @@ export default function LoginPage() {
       }
 
       toast.success("登入成功")
-      router.push("/dashboard")
+      router.replace("/dashboard")
+      router.refresh()
     } catch {
       toast.error("系統忙碌，請稍後再試")
     } finally {

@@ -30,14 +30,14 @@
 
 > market code 先暫定如下（若未來變動，集中在 `MARKETS` 設定檔調整）
 
-- US_MACRO（美國總經/債市）
-- US_EQUITY（美股）
-- TW_EQUITY（台股）
-- HK_EQUITY（港股）
-- CN_EQUITY（陸股）
-- FX（外匯）
-- CRYPTO（加密）
-- TW_FUTURES（台灣期貨/選擇權）
+- us_macro（美國宏觀及債券市場）
+- forex（全球外匯市場）
+- crypto（加密貨幣市場）
+- us_stocks（美股市場）
+- hk_stocks（港股市場）
+- cn_stocks（陸股市場）
+- tw_stocks（台股市場）
+- tw_futures（台指期權市場）
 
 ---
 
@@ -50,7 +50,7 @@
 
 ### 3.2 導覽
 
-- Dashboard 卡片點擊 → `/viewpoints/US_MACRO`（依 market code）
+- Dashboard 卡片點擊 → `/viewpoints/us_macro`（依 market code）
 - 輸入頁提供「返回 Dashboard」按鈕
 
 ---

@@ -34,7 +34,10 @@ export class ApiError extends Error {
   }
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? ""
+const RAW_API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? ""
+const API_BASE_URL = RAW_API_BASE_URL.replace(/\/$/, "")
+const API_KEY = process.env.API_KEY ?? ""
 
 function buildUrl(path: string) {
   if (!API_BASE_URL) {
@@ -46,19 +49,7 @@ function buildUrl(path: string) {
   return `${API_BASE_URL}/${path}`
 }
 
-export async function apiFetch<T>(
-  path: string,
-  init?: RequestInit
-): Promise<T> {
-  const response = await fetch(buildUrl(path), {
-    credentials: "include",
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
-  })
-
+async function parseApiResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let payload: ApiErrorPayload | undefined
     try {
@@ -84,4 +75,36 @@ export async function apiFetch<T>(
   }
 
   return (await response.json()) as T
+}
+
+export async function apiFetch<T>(
+  path: string,
+  init?: RequestInit
+): Promise<T> {
+  const response = await fetch(buildUrl(path), {
+    // credentials: "include",
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-Key": API_KEY,
+      ...init?.headers,
+    },
+  })
+
+  return parseApiResponse<T>(response)
+}
+
+export async function apiFetchInternal<T>(
+  path: string,
+  init?: RequestInit
+): Promise<T> {
+  const response = await fetch(path, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...init?.headers,
+    },
+  })
+
+  return parseApiResponse<T>(response)
 }
