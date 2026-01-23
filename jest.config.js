@@ -11,4 +11,4 @@ const customJestConfig = {
   testMatch: ["**/*.test.ts?(x)"],
 }
 
-module.exports = createJestConfig(customJestConfig)
+export default createJestConfig(customJestConfig)
