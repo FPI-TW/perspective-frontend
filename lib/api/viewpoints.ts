@@ -4,10 +4,8 @@ import { MARKETS, MARKET_SUMMARY_KEYS } from "@/lib/markets"
 
 export type ViewpointsStatusItem = {
   market: MarketCode
-  isCompleted: boolean
-  lastUpdatedAt: string | null
-  lastUpdatedBy: { id: string; name: string } | null
   summary?: string
+  isCompleted: boolean
 }
 
 export type FileInfoResponse = {
@@ -69,8 +67,6 @@ export async function fetchViewpointsStatus() {
     return {
       market: market.code,
       isCompleted: points.length > 0,
-      lastUpdatedAt: null,
-      lastUpdatedBy: null,
       summary: points.join(" / "),
     }
   })

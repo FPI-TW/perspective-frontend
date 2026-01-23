@@ -31,13 +31,12 @@ export default function DashboardPage() {
   const byMarket = new Map(
     (query.data?.items ?? []).map(item => [item.market, item])
   )
+
   const orderedItems = MARKETS.map(
     market =>
       byMarket.get(market.code) ?? {
         market: market.code,
         isCompleted: false,
-        lastUpdatedAt: null,
-        lastUpdatedBy: null,
         summary: "",
       }
   )
