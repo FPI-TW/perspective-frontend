@@ -67,10 +67,10 @@ export default function DashboardPage() {
               Analyst Viewpoints Dashboard
             </p>
             <h1 className="text-3xl font-semibold text-ink sm:text-4xl">
-              八大市場觀點完成度
+              市場觀點狀態總覽
             </h1>
             <p className="max-w-xl text-sm leading-6 text-muted">
-              追蹤最新分析師輸入狀態、最後更新時間與摘要內容。
+              追蹤最新分析師輸入狀態與摘要內容。
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

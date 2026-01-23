@@ -8,7 +8,6 @@ import { useEffect, useRef } from "react"
 import { toast } from "sonner"
 import { ApiError } from "@/lib/api/client"
 import { fetchViewpointDetail } from "@/lib/api/viewpoints"
-import { formatAbsoluteTime, formatRelativeTime } from "@/lib/date"
 import { isMarketCode, MARKET_LABELS } from "@/lib/markets"
 import ViewpointEditorForm from "./_components/ViewpointEditorForm"
 import ViewpointSkeleton from "./_components/ViewpointSkeleton"
@@ -16,11 +15,8 @@ import ViewpointSkeleton from "./_components/ViewpointSkeleton"
 export default function ViewpointPage({ market }: { market: string }) {
   const router = useRouter()
   const hasNotifiedRef = useRef(false)
-  console.log("market", market)
 
   const marketCode = isMarketCode(market) ? market : null
-
-  console.log("marketCode", marketCode)
 
   const query = useQuery({
     queryKey: ["viewpoint-detail", marketCode],
@@ -65,16 +61,11 @@ export default function ViewpointPage({ market }: { market: string }) {
   }
 
   const detail = query.data
-  const statusLabel = detail?.isCompleted ? "Completed" : "Pending"
+  const statusLabel = detail?.isCompleted ? "已完成" : "未完成"
   const statusTone = detail?.isCompleted
-    ? "bg-accent-2/10 text-accent-2"
-    : "bg-accent/10 text-accent"
-  const updatedLabel = detail?.lastUpdatedAt
-    ? formatRelativeTime(detail.lastUpdatedAt)
-    : "尚未更新"
-  const updatedTitle = detail?.lastUpdatedAt
-    ? formatAbsoluteTime(detail.lastUpdatedAt)
-    : ""
+    ? "bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-500/30"
+    : "bg-red-500/10 text-red-500 ring-1 ring-red-700/50"
+
   const asOfLabel = detail?.asOfDateDisplay ?? detail?.asOfDate ?? "—"
 
   return (
@@ -89,7 +80,7 @@ export default function ViewpointPage({ market }: { market: string }) {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Link
               href="/dashboard"
-              className="text-xs font-semibold uppercase tracking-[0.3em] text-accent"
+              className="text-base font-semibold uppercase tracking-[0.3em] text-accent"
             >
               ← 返回 Dashboard
             </Link>
@@ -111,7 +102,6 @@ export default function ViewpointPage({ market }: { market: string }) {
               {statusLabel}
             </span>
             <span>資料日期：{asOfLabel}</span>
-            <span title={updatedTitle}>最後更新：{updatedLabel}</span>
           </div>
         </div>
 

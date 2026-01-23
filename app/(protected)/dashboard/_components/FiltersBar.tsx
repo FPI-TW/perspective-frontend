@@ -16,7 +16,7 @@ export default function FiltersBar({
   onChange: (value: DashboardFilter) => void
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-full border border-border bg-surface/80 p-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+    <div className="flex items-center gap-2 rounded-full w-fit border border-border bg-surface/80 p-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted">
       {FILTERS.map(filter => {
         const isActive = filter.value === value
         return (

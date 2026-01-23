@@ -31,19 +31,19 @@ const viewpointSchema = z
       return
     }
 
-    if (trimmed.length < 20) {
+    if (trimmed.length < 1) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["points"],
-        message: "內容至少 20 字",
+        message: "內容至少 1 字",
       })
     }
 
-    if (trimmed.length > 10000) {
+    if (trimmed.length > 250) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["points"],
-        message: "內容不可超過 10000 字",
+        message: "內容不可超過 250 字",
       })
     }
   })
@@ -172,14 +172,6 @@ export default function ViewpointEditorForm({
               至少輸入一個觀點，完成後可勾選完成狀態。
             </p>
           </div>
-          <label className="flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-            <input
-              type="checkbox"
-              className="h-4 w-4 accent-accent"
-              {...form.register("markCompleted")}
-            />
-            完成
-          </label>
         </div>
 
         <div className="grid gap-4">
