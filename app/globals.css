@@ -1,26 +1,53 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --canvas: #f4efe7;
+  --canvas-2: #fff8f0;
+  --surface: #ffffff;
+  --surface-2: #f8f2ea;
+  --ink: #2b241f;
+  --muted: #6f6155;
+  --accent: #d36a2d;
+  --accent-2: #1a6b6a;
+  --border: #e6ddcf;
+  --ring: #ed9b5b;
+  --shadow-soft: 0 18px 40px rgba(43, 36, 31, 0.12);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-canvas: var(--canvas);
+  --color-canvas-2: var(--canvas-2);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-border: var(--border);
+  --font-sans: var(--font-space-grotesk);
+  --font-serif: var(--font-fraunces);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, #fff4e6 0%, transparent 45%),
+    radial-gradient(circle at 20% 80%, #e3f1f0 0%, transparent 55%),
+    linear-gradient(180deg, var(--canvas) 0%, var(--canvas-2) 100%);
+  color: var(--ink);
+  font-family:
+    var(--font-space-grotesk),
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+::selection {
+  background: rgba(211, 106, 45, 0.2);
 }
