@@ -165,8 +165,6 @@
 - Desktop：2 欄 x 1 列卡片
 - Tablet：1 欄
 - Mobile：1 欄
-- 建議 class：
-  - `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4`
 
 ### 7.2 MarketStatusCard（卡片內容）
 
