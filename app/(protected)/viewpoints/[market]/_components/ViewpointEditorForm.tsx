@@ -134,6 +134,11 @@ export default function ViewpointEditorForm({
   })
   const secondDisabled = !points?.[0]?.trim()
   const thirdDisabled = !points?.[1]?.trim()
+  const pointCounts = [0, 1, 2].map(index => {
+    const value = points?.[index] ?? ""
+    return value.replace(/\s+/g, "").length
+  })
+  const totalCount = pointCounts.reduce((sum, count) => sum + count, 0)
 
   const submitLabel = detail.isCompleted
     ? "更新"
@@ -176,7 +181,12 @@ export default function ViewpointEditorForm({
 
         <div className="grid gap-4">
           <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
-            觀點 1
+            <div className="flex items-center justify-between">
+              <span>觀點 1</span>
+              <span className="text-xs font-medium text-muted">
+                {pointCounts[0]} 字
+              </span>
+            </div>
             <textarea
               rows={5}
               className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent"
@@ -185,7 +195,12 @@ export default function ViewpointEditorForm({
             />
           </label>
           <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
-            觀點 2
+            <div className="flex items-center justify-between">
+              <span>觀點 2</span>
+              <span className="text-xs font-medium text-muted">
+                {pointCounts[1]} 字
+              </span>
+            </div>
             <textarea
               rows={5}
               className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
@@ -195,7 +210,12 @@ export default function ViewpointEditorForm({
             />
           </label>
           <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
-            觀點 3
+            <div className="flex items-center justify-between">
+              <span>觀點 3</span>
+              <span className="text-xs font-medium text-muted">
+                {pointCounts[2]} 字
+              </span>
+            </div>
             <textarea
               rows={5}
               className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
@@ -204,6 +224,10 @@ export default function ViewpointEditorForm({
               {...form.register("points.2")}
             />
           </label>
+        </div>
+
+        <div className="mt-4 flex items-center justify-end text-sm font-semibold text-muted">
+          總字數 {totalCount} / 250
         </div>
 
         {form.formState.errors.points ? (
