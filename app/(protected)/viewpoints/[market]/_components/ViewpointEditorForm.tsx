@@ -13,37 +13,43 @@ import { updateViewpoint } from "@/lib/api/viewpoints"
 import type { MarketCode } from "@/lib/markets"
 import { joinViewpoints } from "@/lib/text"
 
+const MAX_WORDS = 300
+
 const viewpointSchema = z
   .object({
     points: z.array(z.string()).length(3),
     markCompleted: z.boolean(),
   })
   .superRefine((values, ctx) => {
-    const content = joinViewpoints(values.points)
-    const trimmed = content.trim()
+    const points = joinViewpoints(values.points)
+    let totalWords = 0
 
-    if (!trimmed) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["points"],
-        message: "至少輸入一個觀點",
-      })
-      return
+    for (const point of points) {
+      if (!point) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["points"],
+          message: "至少輸入一個觀點",
+        })
+        return
+      }
+
+      if (point.length < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["points"],
+          message: "內容至少 1 字",
+        })
+      }
+
+      totalWords += point.length
     }
 
-    if (trimmed.length < 1) {
+    if (totalWords > MAX_WORDS) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["points"],
-        message: "內容至少 1 字",
-      })
-    }
-
-    if (trimmed.length > 250) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["points"],
-        message: "內容不可超過 250 字",
+        message: `內容不可超過 ${MAX_WORDS} 字`,
       })
     }
   })
@@ -139,6 +145,7 @@ export default function ViewpointEditorForm({
     return value.replace(/\s+/g, "").length
   })
   const totalCount = pointCounts.reduce((sum, count) => sum + count, 0)
+  const isOverLimit = totalCount > MAX_WORDS
 
   const submitLabel = detail.isCompleted
     ? "更新"
@@ -151,13 +158,20 @@ export default function ViewpointEditorForm({
   return (
     <form
       className="flex flex-col gap-6"
-      onSubmit={form.handleSubmit(values => {
-        if (!fileExists) {
-          toast.error("檔案尚未就緒，請先執行 generate_report.py")
-          return
+      onSubmit={form.handleSubmit(
+        values => {
+          if (!fileExists) {
+            toast.error("檔案尚未就緒，請先執行 generate_report.py")
+            return
+          }
+          mutation.mutate(values)
+        },
+        errors => {
+          const errorMessage =
+            errors.points?.root?.message ?? errors.markCompleted?.message
+          toast.error(errorMessage ?? "內容有誤，請確認後再提交")
         }
-        mutation.mutate(values)
-      })}
+      )}
     >
       {!fileExists ? (
         <div className="rounded-2xl border border-border bg-surface/80 p-4 text-sm text-muted shadow-(--shadow-soft)">
@@ -226,15 +240,14 @@ export default function ViewpointEditorForm({
           </label>
         </div>
 
-        <div className="mt-4 flex items-center justify-end text-sm font-semibold text-muted">
-          總字數 {totalCount} / 250
+        <div
+          className={`mt-4 flex items-center justify-end text-sm font-semibold ${
+            isOverLimit ? "text-red-600" : "text-muted"
+          }`}
+        >
+          總字數 {totalCount} / {MAX_WORDS}
         </div>
 
-        {form.formState.errors.points ? (
-          <p className="text-sm text-red-600">
-            {form.formState.errors.points.message}
-          </p>
-        ) : null}
         {form.formState.errors.markCompleted ? (
           <p className="text-sm text-red-600">
             {form.formState.errors.markCompleted.message}
