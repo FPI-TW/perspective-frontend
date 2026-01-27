@@ -4,7 +4,7 @@ import { MARKETS, MARKET_SUMMARY_KEYS } from "@/lib/markets"
 
 export type ViewpointsStatusItem = {
   market: MarketCode
-  summary?: string
+  summary?: string[]
   isCompleted: boolean // 是否已完成撰寫觀點(邏輯在前端判定)
 }
 
@@ -30,7 +30,7 @@ export type ViewpointDetailResponse = {
   asOfDate: string
   asOfDateDisplay: string
   isCompleted: boolean
-  content: string
+  content: string[]
   lastUpdatedAt: string | null
   lastUpdatedBy: { id: string; name: string } | null
   fileExists: boolean
@@ -68,7 +68,7 @@ export async function fetchViewpointsStatus() {
     return {
       market: market.code,
       isCompleted: points.length > 0 && points[0] !== "。",
-      summary: points.join(" / "),
+      summary: points,
     }
   })
 
@@ -93,7 +93,7 @@ export async function fetchViewpointDetail(market: MarketCode) {
     asOfDate: fileInfo.date,
     asOfDateDisplay: fileInfo.date_display,
     isCompleted: points.length > 0 && points[0] !== "。",
-    content: points.join("\n\n"),
+    content: points,
     lastUpdatedAt: null,
     lastUpdatedBy: null,
     fileExists: fileInfo.file_exists,

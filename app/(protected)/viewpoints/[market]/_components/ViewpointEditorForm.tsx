@@ -11,7 +11,7 @@ import { ApiError } from "@/lib/api/client"
 import type { ViewpointDetailResponse } from "@/lib/api/viewpoints"
 import { updateViewpoint } from "@/lib/api/viewpoints"
 import type { MarketCode } from "@/lib/markets"
-import { joinViewpoints, splitViewpoints } from "@/lib/text"
+import { joinViewpoints } from "@/lib/text"
 
 const viewpointSchema = z
   .object({
@@ -65,14 +65,14 @@ export default function ViewpointEditorForm({
   const form = useForm<ViewpointFormValues>({
     resolver: zodResolver(viewpointSchema),
     defaultValues: {
-      points: splitViewpoints(detail.content ?? ""),
+      points: detail.content,
       markCompleted: detail.isCompleted,
     },
   })
 
   useEffect(() => {
     form.reset({
-      points: splitViewpoints(detail.content ?? ""),
+      points: detail.content,
       markCompleted: detail.isCompleted,
     })
   }, [detail.content, detail.isCompleted, form])
