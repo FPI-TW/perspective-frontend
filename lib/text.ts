@@ -7,8 +7,5 @@ export function truncateText(text: string, maxLength: number) {
 }
 
 export function joinViewpoints(values: string[]) {
-  return values
-    .map(value => value.trim())
-    .filter(Boolean)
-    .join("\n\n")
+  return values.map(value => value.trim()).filter(Boolean)
 }
