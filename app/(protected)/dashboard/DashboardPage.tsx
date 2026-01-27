@@ -37,7 +37,7 @@ export default function DashboardPage() {
       byMarket.get(market.code) ?? {
         market: market.code,
         isCompleted: false,
-        summary: "",
+        summary: [],
       }
   )
 

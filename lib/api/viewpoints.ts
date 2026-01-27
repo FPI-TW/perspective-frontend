@@ -4,8 +4,8 @@ import { MARKETS, MARKET_SUMMARY_KEYS } from "@/lib/markets"
 
 export type ViewpointsStatusItem = {
   market: MarketCode
-  summary?: string
-  isCompleted: boolean
+  summary?: string[]
+  isCompleted: boolean // 是否已完成撰寫觀點(邏輯在前端判定)
 }
 
 export type FileInfoResponse = {
@@ -13,7 +13,7 @@ export type FileInfoResponse = {
   date_display: string
   file_path: string
   file_exists: boolean
-  status: string
+  status: string // ppt檔案是否創建
 }
 
 export type SummaryResponse = Record<SummaryKey, string[]>
@@ -30,7 +30,7 @@ export type ViewpointDetailResponse = {
   asOfDate: string
   asOfDateDisplay: string
   isCompleted: boolean
-  content: string
+  content: string[]
   lastUpdatedAt: string | null
   lastUpdatedBy: { id: string; name: string } | null
   fileExists: boolean
@@ -64,10 +64,11 @@ export async function fetchViewpointsStatus() {
 
   const items: ViewpointsStatusItem[] = MARKETS.map(market => {
     const points = normalizePoints(summary[market.summaryKey] ?? [])
+
     return {
       market: market.code,
-      isCompleted: points.length > 0,
-      summary: points.join(" / "),
+      isCompleted: points.length > 0 && points[0] !== "。",
+      summary: points,
     }
   })
 
@@ -91,8 +92,8 @@ export async function fetchViewpointDetail(market: MarketCode) {
     market,
     asOfDate: fileInfo.date,
     asOfDateDisplay: fileInfo.date_display,
-    isCompleted: points.length > 0,
-    content: points.join("\n\n"),
+    isCompleted: points.length > 0 && points[0] !== "。",
+    content: points,
     lastUpdatedAt: null,
     lastUpdatedBy: null,
     fileExists: fileInfo.file_exists,
