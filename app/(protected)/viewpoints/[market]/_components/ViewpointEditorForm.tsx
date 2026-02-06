@@ -22,32 +22,19 @@ const viewpointSchema = z
   })
   .superRefine((values, ctx) => {
     const points = joinViewpoints(values.points)
-    let totalWords = 0
+    const totalWords = points.reduce((sum, point) => sum + point.length, 0)
 
-    for (const point of points) {
-      if (!point) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["points"],
-          message: "至少輸入一個觀點",
-        })
-        return
-      }
-
-      if (point.length < 1) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["points"],
-          message: "內容至少 1 字",
-        })
-      }
-
-      totalWords += point.length
+    if (totalWords < 1) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["points"],
+        message: "至少輸入一個觀點",
+      })
     }
 
     if (totalWords > MAX_WORDS) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["points"],
         message: `內容不可超過 ${MAX_WORDS} 字`,
       })
@@ -142,7 +129,7 @@ export default function ViewpointEditorForm({
   const thirdDisabled = !points?.[1]?.trim()
   const pointCounts = [0, 1, 2].map(index => {
     const value = points?.[index] ?? ""
-    return value.replace(/\s+/g, "").length
+    return value.length
   })
   const totalCount = pointCounts.reduce((sum, count) => sum + count, 0)
   const isOverLimit = totalCount > MAX_WORDS
