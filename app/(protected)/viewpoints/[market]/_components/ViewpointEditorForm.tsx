@@ -3,7 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useEffect } from "react"
-import { useForm, useWatch } from "react-hook-form"
+import {
+  FieldErrors,
+  useForm,
+  useWatch,
+  type UseFormRegister,
+} from "react-hook-form"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -132,7 +137,6 @@ export default function ViewpointEditorForm({
     return value.length
   })
   const totalCount = pointCounts.reduce((sum, count) => sum + count, 0)
-  const isOverLimit = totalCount > MAX_WORDS
 
   const submitLabel = detail.isCompleted
     ? "更新"
@@ -187,129 +191,21 @@ export default function ViewpointEditorForm({
           檔案尚未就緒，請先執行 generate_report.py 後再提交。
         </div>
       ) : null}
-      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface/80 p-6 shadow-(--shadow-soft)">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted">
-              今日觀點
-            </p>
-            <h2 className="mt-2 text-xl font-semibold text-ink">
-              請輸入 1 - 3 個重點
-            </h2>
-            <p className="mt-2 text-sm text-muted">
-              至少輸入一個觀點，完成後可勾選完成狀態。
-            </p>
-          </div>
-        </div>
 
-        <div className="grid gap-4">
-          <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
-            <div className="flex items-center justify-between">
-              <span>觀點 1</span>
-              <span className="text-xs font-medium text-muted">
-                {pointCounts[0]} 字
-              </span>
-            </div>
-            <textarea
-              rows={5}
-              className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent"
-              placeholder="輸入今日第一個觀點"
-              {...form.register("points.0")}
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
-            <div className="flex items-center justify-between">
-              <span>觀點 2</span>
-              <span className="text-xs font-medium text-muted">
-                {pointCounts[1]} 字
-              </span>
-            </div>
-            <textarea
-              rows={5}
-              className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
-              placeholder="輸入第二個觀點（可選）"
-              disabled={secondDisabled}
-              {...form.register("points.1")}
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
-            <div className="flex items-center justify-between">
-              <span>觀點 3</span>
-              <span className="text-xs font-medium text-muted">
-                {pointCounts[2]} 字
-              </span>
-            </div>
-            <textarea
-              rows={5}
-              className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
-              placeholder="輸入第三個觀點（可選）"
-              disabled={thirdDisabled}
-              {...form.register("points.2")}
-            />
-          </label>
-        </div>
+      <MarketAnalysisPromptSection
+        prompt={marketAnalysisPrompt}
+        hasPrompt={hasMarketAnalysisPrompt}
+        onCopy={handleCopyMarketAnalysisPrompt}
+      />
 
-        <div
-          className={`mt-4 flex items-center justify-end text-sm font-semibold ${
-            isOverLimit ? "text-red-600" : "text-muted"
-          }`}
-        >
-          總字數 {totalCount} / {MAX_WORDS}
-        </div>
-
-        {form.formState.errors.markCompleted ? (
-          <p className="text-sm text-red-600">
-            {form.formState.errors.markCompleted.message}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface/80 p-4 shadow-(--shadow-soft)">
-        <details className="group">
-          <summary className="cursor-pointer list-none">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <svg
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                  className="size-4 shrink-0 text-muted transition group-open:rotate-90"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.28 4.22a.75.75 0 0 1 1.06 0l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06L11.97 10 7.28 5.28a.75.75 0 0 1 0-1.06Z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="text-sm font-semibold text-ink">
-                  市場分析提示詞
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={event => {
-                  event.preventDefault()
-                  event.stopPropagation()
-                  handleCopyMarketAnalysisPrompt()
-                }}
-                disabled={!hasMarketAnalysisPrompt}
-                className="inline-flex h-10 items-center justify-center rounded-full border border-accent px-4 text-xs font-semibold uppercase tracking-[0.15em] text-accent transition hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:border-border disabled:text-muted disabled:hover:bg-transparent disabled:hover:text-muted"
-              >
-                複製提示詞
-              </button>
-            </div>
-          </summary>
-          <div className="mt-3">
-            <textarea
-              rows={8}
-              readOnly
-              value={marketAnalysisPrompt}
-              placeholder="提示詞資料準備中，待 API 完成後顯示。"
-              className="min-h-38 w-full rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none"
-            />
-          </div>
-        </details>
-      </div>
+      <MarketViewpointInputs
+        pointCounts={pointCounts}
+        secondDisabled={secondDisabled}
+        thirdDisabled={thirdDisabled}
+        register={form.register}
+        totalCount={totalCount}
+        errors={form.formState.errors}
+      />
 
       <button
         type="submit"
@@ -319,5 +215,212 @@ export default function ViewpointEditorForm({
         {mutation.isPending ? "提交中..." : submitLabel}
       </button>
     </form>
+  )
+}
+
+type MarketViewpointInputsProps = {
+  pointCounts: number[]
+  secondDisabled: boolean
+  thirdDisabled: boolean
+  register: UseFormRegister<ViewpointFormValues>
+  totalCount: number
+  errors: FieldErrors<ViewpointFormValues>
+}
+
+function MarketViewpointInputs({
+  pointCounts,
+  secondDisabled,
+  thirdDisabled,
+  register,
+  totalCount,
+  errors,
+}: MarketViewpointInputsProps) {
+  const isOverLimit = totalCount > MAX_WORDS
+
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface/80 p-6 shadow-(--shadow-soft)">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted">
+            今日觀點
+          </p>
+          <h2 className="mt-2 text-xl font-semibold text-ink">
+            請輸入 1 - 3 個重點
+          </h2>
+          <p className="mt-2 text-sm text-muted">
+            至少輸入一個觀點，完成後可勾選完成狀態。
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-4">
+        <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
+          <div className="flex items-center justify-between">
+            <span>觀點 1</span>
+            <span className="text-xs font-medium text-muted">
+              {pointCounts[0]} 字
+            </span>
+          </div>
+          <textarea
+            rows={5}
+            className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent"
+            placeholder="輸入今日第一個觀點"
+            {...register("points.0")}
+          />
+        </label>
+        <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
+          <div className="flex items-center justify-between">
+            <span>觀點 2</span>
+            <span className="text-xs font-medium text-muted">
+              {pointCounts[1]} 字
+            </span>
+          </div>
+          <textarea
+            rows={5}
+            className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
+            placeholder="輸入第二個觀點（可選）"
+            disabled={secondDisabled}
+            {...register("points.1")}
+          />
+        </label>
+        <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
+          <div className="flex items-center justify-between">
+            <span>觀點 3</span>
+            <span className="text-xs font-medium text-muted">
+              {pointCounts[2]} 字
+            </span>
+          </div>
+          <textarea
+            rows={5}
+            className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
+            placeholder="輸入第三個觀點（可選）"
+            disabled={thirdDisabled}
+            {...register("points.2")}
+          />
+        </label>
+      </div>
+
+      <div
+        className={`mt-4 flex items-center justify-end text-sm font-semibold ${
+          isOverLimit ? "text-red-600" : "text-muted"
+        }`}
+      >
+        總字數 {totalCount} / {MAX_WORDS}
+      </div>
+
+      {errors.markCompleted ? (
+        <p className="text-sm text-red-600">{errors.markCompleted.message}</p>
+      ) : null}
+    </div>
+  )
+
+  return (
+    <div className="grid gap-4">
+      <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
+        <div className="flex items-center justify-between">
+          <span>觀點 1</span>
+          <span className="text-xs font-medium text-muted">
+            {pointCounts[0]} 字
+          </span>
+        </div>
+        <textarea
+          rows={5}
+          className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent"
+          placeholder="輸入今日第一個觀點"
+          {...register("points.0")}
+        />
+      </label>
+      <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
+        <div className="flex items-center justify-between">
+          <span>觀點 2</span>
+          <span className="text-xs font-medium text-muted">
+            {pointCounts[1]} 字
+          </span>
+        </div>
+        <textarea
+          rows={5}
+          className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
+          placeholder="輸入第二個觀點（可選）"
+          disabled={secondDisabled}
+          {...register("points.1")}
+        />
+      </label>
+      <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
+        <div className="flex items-center justify-between">
+          <span>觀點 3</span>
+          <span className="text-xs font-medium text-muted">
+            {pointCounts[2]} 字
+          </span>
+        </div>
+        <textarea
+          rows={5}
+          className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
+          placeholder="輸入第三個觀點（可選）"
+          disabled={thirdDisabled}
+          {...register("points.2")}
+        />
+      </label>
+    </div>
+  )
+}
+
+type MarketAnalysisPromptSectionProps = {
+  prompt: string
+  hasPrompt: boolean
+  onCopy: () => void
+}
+
+function MarketAnalysisPromptSection({
+  prompt,
+  hasPrompt,
+  onCopy,
+}: MarketAnalysisPromptSectionProps) {
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface/80 p-4 shadow-(--shadow-soft)">
+      <details className="group">
+        <summary className="cursor-pointer list-none">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <svg
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+                className="size-4 shrink-0 text-muted transition group-open:rotate-90"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M7.28 4.22a.75.75 0 0 1 1.06 0l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06L11.97 10 7.28 5.28a.75.75 0 0 1 0-1.06Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="text-sm font-semibold text-ink">
+                市場分析提示詞
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={event => {
+                event.preventDefault()
+                event.stopPropagation()
+                onCopy()
+              }}
+              disabled={!hasPrompt}
+              className="inline-flex h-10 items-center justify-center rounded-full border border-accent px-4 text-xs font-semibold uppercase tracking-[0.15em] text-accent transition hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:border-border disabled:text-muted disabled:hover:bg-transparent disabled:hover:text-muted"
+            >
+              複製提示詞
+            </button>
+          </div>
+        </summary>
+        <div className="mt-3">
+          <textarea
+            rows={8}
+            readOnly
+            value={prompt}
+            placeholder="提示詞資料準備中，待 API 完成後顯示。"
+            className="min-h-38 w-full rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none"
+          />
+        </div>
+      </details>
+    </div>
   )
 }
