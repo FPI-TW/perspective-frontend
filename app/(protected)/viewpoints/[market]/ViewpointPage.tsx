@@ -27,6 +27,10 @@ export default function ViewpointPage({ market }: { market: string }) {
       }
       return fetchViewpointDetail(marketCode)
     },
+    select: detail => ({
+      ...detail,
+      content: detail.content.slice(0, 3),
+    }),
   })
 
   const apiError = query.error instanceof ApiError ? query.error : null
