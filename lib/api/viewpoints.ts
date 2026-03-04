@@ -44,6 +44,27 @@ export type UpdateViewpointResponse = {
   file: string
 }
 
+export type AnalystPromptResponse = {
+  id: string
+  name: string
+  version: string
+  model: string
+  description: string
+  slide_index: number
+  keyword: string
+  main_prompt: string
+  data_sources: string[]
+  constraints: {
+    max_chars: number
+    target_chars: number
+    paragraphs: number
+    temperature: number
+    tools: string[]
+    text_preservation_mode: boolean
+  }
+  timestamp: string
+}
+
 function normalizePoints(points: string[]) {
   return points.map(point => point.trim()).filter(Boolean)
 }
@@ -112,4 +133,8 @@ export function updateViewpoint(market: MarketCode, points: string[]) {
     method: "POST",
     body: JSON.stringify(payload),
   })
+}
+
+export function fetchAnalystPrompt(analystName: MarketCode) {
+  return apiFetchInternal<AnalystPromptResponse>(`/api/prompts/${analystName}`)
 }

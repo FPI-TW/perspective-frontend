@@ -1,10 +1,10 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect } from "react"
 import {
-  FieldErrors,
+  type FieldErrors,
   useForm,
   useWatch,
   type UseFormRegister,
@@ -14,7 +14,7 @@ import { toast } from "sonner"
 import { z } from "zod"
 import { ApiError } from "@/lib/api/client"
 import type { ViewpointDetailResponse } from "@/lib/api/viewpoints"
-import { updateViewpoint } from "@/lib/api/viewpoints"
+import { fetchAnalystPrompt, updateViewpoint } from "@/lib/api/viewpoints"
 import type { MarketCode } from "@/lib/markets"
 import { joinViewpoints } from "@/lib/text"
 
@@ -125,6 +125,11 @@ export default function ViewpointEditorForm({
     },
   })
 
+  const promptQuery = useQuery({
+    queryKey: ["analyst-prompt", market],
+    queryFn: () => fetchAnalystPrompt(market),
+  })
+
   const points = useWatch({ control: form.control, name: "points" })
   const markCompleted = useWatch({
     control: form.control,
@@ -145,9 +150,13 @@ export default function ViewpointEditorForm({
       : "提交"
 
   const isSubmitDisabled = mutation.isPending || !fileExists
-  // TODO: replace with API field after prompt endpoint is ready.
-  const marketAnalysisPrompt = ""
+  const marketAnalysisPrompt = promptQuery.data?.main_prompt?.trim() ?? ""
   const hasMarketAnalysisPrompt = marketAnalysisPrompt.trim().length > 0
+  const promptPlaceholder = promptQuery.isLoading
+    ? "提示詞載入中..."
+    : promptQuery.isError
+      ? "提示詞載入失敗，請稍後再試。"
+      : "目前沒有提示詞資料。"
 
   const handleCopyMarketAnalysisPrompt = async () => {
     if (!hasMarketAnalysisPrompt) {
@@ -194,6 +203,7 @@ export default function ViewpointEditorForm({
 
       <MarketAnalysisPromptSection
         prompt={marketAnalysisPrompt}
+        placeholder={promptPlaceholder}
         hasPrompt={hasMarketAnalysisPrompt}
         onCopy={handleCopyMarketAnalysisPrompt}
       />
@@ -313,65 +323,18 @@ function MarketViewpointInputs({
       ) : null}
     </div>
   )
-
-  return (
-    <div className="grid gap-4">
-      <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
-        <div className="flex items-center justify-between">
-          <span>觀點 1</span>
-          <span className="text-xs font-medium text-muted">
-            {pointCounts[0]} 字
-          </span>
-        </div>
-        <textarea
-          rows={5}
-          className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent"
-          placeholder="輸入今日第一個觀點"
-          {...register("points.0")}
-        />
-      </label>
-      <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
-        <div className="flex items-center justify-between">
-          <span>觀點 2</span>
-          <span className="text-xs font-medium text-muted">
-            {pointCounts[1]} 字
-          </span>
-        </div>
-        <textarea
-          rows={5}
-          className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
-          placeholder="輸入第二個觀點（可選）"
-          disabled={secondDisabled}
-          {...register("points.1")}
-        />
-      </label>
-      <label className="flex flex-col gap-2 text-sm font-semibold text-ink">
-        <div className="flex items-center justify-between">
-          <span>觀點 3</span>
-          <span className="text-xs font-medium text-muted">
-            {pointCounts[2]} 字
-          </span>
-        </div>
-        <textarea
-          rows={5}
-          className="min-h-30 rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none transition focus:border-accent disabled:cursor-not-allowed disabled:bg-surface-2"
-          placeholder="輸入第三個觀點（可選）"
-          disabled={thirdDisabled}
-          {...register("points.2")}
-        />
-      </label>
-    </div>
-  )
 }
 
 type MarketAnalysisPromptSectionProps = {
   prompt: string
+  placeholder: string
   hasPrompt: boolean
   onCopy: () => void
 }
 
 function MarketAnalysisPromptSection({
   prompt,
+  placeholder,
   hasPrompt,
   onCopy,
 }: MarketAnalysisPromptSectionProps) {
@@ -416,7 +379,7 @@ function MarketAnalysisPromptSection({
             rows={8}
             readOnly
             value={prompt}
-            placeholder="提示詞資料準備中，待 API 完成後顯示。"
+            placeholder={placeholder}
             className="min-h-38 w-full rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none"
           />
         </div>
