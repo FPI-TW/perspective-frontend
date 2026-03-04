@@ -141,6 +141,28 @@ export default function ViewpointEditorForm({
       : "提交"
 
   const isSubmitDisabled = mutation.isPending || !fileExists
+  // TODO: replace with API field after prompt endpoint is ready.
+  const marketAnalysisPrompt = ""
+  const hasMarketAnalysisPrompt = marketAnalysisPrompt.trim().length > 0
+
+  const handleCopyMarketAnalysisPrompt = async () => {
+    if (!hasMarketAnalysisPrompt) {
+      toast.error("目前沒有可複製的提示詞")
+      return
+    }
+
+    if (!navigator.clipboard) {
+      toast.error("目前瀏覽器不支援自動複製，請手動複製")
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(marketAnalysisPrompt)
+      toast.success("已複製市場分析提示詞")
+    } catch {
+      toast.error("複製失敗，請稍後再試")
+    }
+  }
 
   return (
     <form
@@ -240,6 +262,53 @@ export default function ViewpointEditorForm({
             {form.formState.errors.markCompleted.message}
           </p>
         ) : null}
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface/80 p-4 shadow-(--shadow-soft)">
+        <details className="group">
+          <summary className="cursor-pointer list-none">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-muted transition group-open:rotate-90"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.28 4.22a.75.75 0 0 1 1.06 0l5.25 5.25a.75.75 0 0 1 0 1.06l-5.25 5.25a.75.75 0 1 1-1.06-1.06L11.97 10 7.28 5.28a.75.75 0 0 1 0-1.06Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="text-sm font-semibold text-ink">
+                  市場分析提示詞
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={event => {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  handleCopyMarketAnalysisPrompt()
+                }}
+                disabled={!hasMarketAnalysisPrompt}
+                className="inline-flex h-10 items-center justify-center rounded-full border border-accent px-4 text-xs font-semibold uppercase tracking-[0.15em] text-accent transition hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:border-border disabled:text-muted disabled:hover:bg-transparent disabled:hover:text-muted"
+              >
+                複製提示詞
+              </button>
+            </div>
+          </summary>
+          <div className="mt-3">
+            <textarea
+              rows={8}
+              readOnly
+              value={marketAnalysisPrompt}
+              placeholder="提示詞資料準備中，待 API 完成後顯示。"
+              className="min-h-38 w-full rounded-2xl border border-border bg-white/70 p-4 text-sm leading-6 text-ink outline-none"
+            />
+          </div>
+        </details>
       </div>
 
       <button
